@@ -1,0 +1,269 @@
+
+import socket
+import struct
+
+# Create raw socket
+sniffer = socket.socket(
+    socket.AF_INET,
+    socket.SOCK_RAW,
+    socket.IPPROTO_IP
+)
+
+# Windows: replace with your computer's active IPv4 address
+HOST_IP = "192.168.1.10"
+
+sniffer.bind((HOST_IP, 0))
+sniffer.setsockopt(
+    socket.IPPROTO_IP,
+    socket.IP_HDRINCL,
+    1
+)
+
+# Enable packet capture on Windows
+sniffer.ioctl(socket.SIO_RCVALL, socket.RCVALL_ON)
+
+print("Packet Sniffer Started")
+print("Capturing packets... Press Ctrl+C to stop")
+
+try:
+    while True:
+        packet, address = sniffer.recvfrom(65565)
+
+        # Extract IP header
+        ip_header = packet[0:20]
+
+        iph = struct.unpack("!BBHHHBBH4s4s", ip_header)
+
+        source_ip = socket.inet_ntoa(iph[8])
+        destination_ip = socket.inet_ntoa(iph[9])
+
+        protocol = iph[6]
+
+        protocols = {
+            1: "ICMP",
+            6: "TCP",
+            17: "UDP"
+        }
+
+        protocol_name = protocols.get(protocol, "OTHER")
+
+        print("\nPacket Captured")
+        print("Source IP:", source_ip)
+        print("Destination IP:", destination_ip)
+        print("Protocol:", protocol_name)
+        print("Packet Length:", len(packet))
+
+except KeyboardInterrupt:
+    print("\nPacket Sniffing Stopped")
+
+finally:
+    sniffer.ioctl(socket.SIO_RCVALL, socket.RCVALL_OFF)
+    sniffer.close()
+
+
+///
+
+
+import subprocess
+import platform
+
+# Predefined server address
+HOST = "google.com"
+COUNT = 4
+
+# Select command based on operating system
+if platform.system().lower() == "windows":
+    command = ["ping", "-n", str(COUNT), HOST]
+else:
+    command = ["ping", "-c", str(COUNT), HOST]
+
+print("CUSTOM PING PROGRAM")
+print("Testing server:", HOST)
+print("-" * 40)
+
+try:
+    result = subprocess.run(
+        command,
+        capture_output=True,
+        text=True,
+        timeout=30
+    )
+
+    print(result.stdout)
+
+    if result.returncode == 0:
+        print("Server Status: REACHABLE")
+    else:
+        print("Server Status: UNREACHABLE")
+
+except subprocess.TimeoutExpired:
+    print("Request timed out")
+
+except Exception as error:
+    print("Error:", error)
+
+//
+
+
+import ftplib
+
+# Predefined FTP server
+FTP_HOST = "ftp.gnu.org"
+USERNAME = "anonymous"
+PASSWORD = "anonymous@example.com"
+
+print("ANONYMOUS FTP SCANNER")
+print("Target Server:", FTP_HOST)
+print("-" * 40)
+
+try:
+    ftp = ftplib.FTP(FTP_HOST, timeout=15)
+
+    ftp.login(USERNAME, PASSWORD)
+
+    print("Anonymous FTP Login: SUCCESS")
+
+    print("\nAvailable Directory Files:")
+
+    ftp.retrlines("LIST")
+
+    ftp.quit()
+
+except ftplib.error_perm as error:
+    print("Anonymous FTP Login or Directory Access Failed")
+    print(error)
+
+except Exception as error:
+    print("Connection Error:", error)
+
+
+//
+
+
+from xmlrpc.server import SimpleXMLRPCServer
+
+def add(a, b):
+    return a + b
+
+def subtract(a, b):
+    return a - b
+
+def multiply(a, b):
+    return a * b
+
+def divide(a, b):
+    if b == 0:
+        return "Cannot divide by zero"
+    return a / b
+
+server = SimpleXMLRPCServer(
+    ("127.0.0.1", 8000),
+    allow_none=True
+)
+
+server.register_function(add, "add")
+server.register_function(subtract, "subtract")
+server.register_function(multiply, "multiply")
+server.register_function(divide, "divide")
+
+print("XML-RPC Calculator Server Started")
+print("Server running on port 8000")
+
+server.serve_forever()
+
+
+
+cl
+
+import xmlrpc.client
+
+proxy = xmlrpc.client.ServerProxy(
+    "http://127.0.0.1:8000/"
+)
+
+# Predefined values
+a = 20
+b = 10
+
+print("XML-RPC CALCULATOR")
+print("First Number:", a)
+print("Second Number:", b)
+
+print("Addition:", proxy.add(a, b))
+print("Subtraction:", proxy.subtract(a, b))
+print("Multiplication:", proxy.multiply(a, b))
+print("Division:", proxy.divide(a, b))
+
+
+
+//
+
+
+import socket
+
+HOST = "127.0.0.1"
+PORT = 9000
+
+server = socket.socket(
+    socket.AF_INET,
+    socket.SOCK_STREAM
+)
+
+server.bind((HOST, PORT))
+server.listen(1)
+
+print("TCP Server Started")
+print("Waiting for client...")
+
+connection, address = server.accept()
+
+print("Client Connected:", address)
+
+connection.sendall(b"SEND_INFO")
+
+data = connection.recv(4096)
+
+print("Client Information:")
+print(data.decode())
+
+connection.close()
+server.close()
+
+print("Connection Closed")
+
+
+cl
+
+
+import socket
+import platform
+
+HOST = "127.0.0.1"
+PORT = 9000
+
+client = socket.socket(
+    socket.AF_INET,
+    socket.SOCK_STREAM
+)
+
+client.connect((HOST, PORT))
+
+print("Connected to TCP Server")
+
+message = client.recv(1024)
+
+if message == b"SEND_INFO":
+    system_info = (
+        "Operating System: " + platform.system() +
+        "\nComputer Name: " + platform.node() +
+        "\nArchitecture: " + platform.machine()
+    )
+
+    client.sendall(system_info.encode())
+
+client.close()
+
+print("Client Disconnected")
+
+
+//
